@@ -1,6 +1,6 @@
 import os
 from flask import Flask, flash, request, redirect, url_for
-#from celery_worker import task
+from celery_worker import task1
 from werkzeug.utils import secure_filename
 
 UPLOAD_FOLDER = 'uploads'
@@ -28,8 +28,10 @@ def upload_file():
             return redirect(request.url)
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            return redirect(url_for('download_file', name=filename))
+            file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            file.save(file_path)
+            task_obj = task1.apply_async(args=[file_path])
+            return str(task_obj)
     return '''
     <!doctype html>
     <title>Upload new File</title>
